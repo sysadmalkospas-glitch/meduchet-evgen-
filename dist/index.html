@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МедУчёт — Система учёта лекарственных средств</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f9fafb;color:#1f2937}
+button{cursor:pointer;font-family:inherit}
+input,select{font-family:inherit}
+table{border-collapse:collapse}
+.app{display:flex;min-height:100vh}
+.sidebar{width:256px;background:#fff;border-right:1px solid #e5e7eb;position:fixed;height:100vh;display:flex;flex-direction:column;z-index:10}
+.sidebar-header{padding:20px;border-bottom:1px solid #f3f4f6}
+.sidebar-logo{display:flex;align-items:center;gap:12px}
+.sidebar-logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#2563eb,#4338ca);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:bold}
+.sidebar-logo-text h1{font-size:14px;font-weight:700;color:#1f2937}
+.sidebar-logo-text p{font-size:10px;color:#9ca3af}
+.sidebar-nav{flex:1;padding:12px;overflow-y:auto}
+.nav-btn{width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;border:none;background:transparent;font-size:14px;color:#4b5563;text-align:left;margin-bottom:2px;transition:all .15s}
+.nav-btn:hover{background:#f9fafb;color:#1f2937}
+.nav-btn.active{background:#eff6ff;color:#1d4ed8;font-weight:600}
+.nav-icon{width:18px;height:18px;flex-shrink:0}
+.nav-label{flex:1}
+.nav-badge{background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.sidebar-footer{padding:16px;border-top:1px solid #f3f4f6}
+.user-info{display:flex;align-items:center;gap:12px}
+.user-avatar{width:36px;height:36px;background:linear-gradient(135deg,#34d399,#0d9488);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+.user-name{font-size:12px;font-weight:600;color:#374151}
+.user-role{font-size:10px;color:#9ca3af}
+.main{flex:1;margin-left:256px}
+.header{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.header h2{font-size:18px;font-weight:700;color:#1f2937}
+.header p{font-size:12px;color:#9ca3af}
+.header-right{display:flex;align-items:center;gap:12px}
+.bell-btn{position:relative;padding:8px;background:none;border:none;color:#9ca3af;border-radius:8px}
+.bell-btn:hover{background:#f9fafb;color:#4b5563}
+.bell-badge{position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:8px;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+.header-divider{height:24px;width:1px;background:#e5e7eb}
+.header-user{text-align:right}
+.header-user-name{font-size:12px;font-weight:500;color:#374151}
+.header-user-role{font-size:10px;color:#9ca3af}
+.content{padding:24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid #f3f4f6;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.kpi-label{font-size:12px;font-weight:500;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.kpi-value{font-size:24px;font-weight:700;color:#1f2937}
+.alert{border-radius:8px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.alert-red{background:#fef2f2;border:1px solid #fecaca}
+.alert-yellow{background:#fefce8;border:1px solid #fef08a}
+.alert-orange{background:#fff7ed;border:1px solid #fed7aa}
+.alert-blue{background:#eff6ff;border:1px solid #bfdbfe}
+.card{background:#fff;border-radius:12px;border:1px solid #f3f4f6;box-shadow:0 1px 2px rgba(0,0,0,.05);overflow:hidden;margin-bottom:16px}
+.card-header{padding:16px 20px;border-bottom:1px solid #f3f4f6}
+.card-header h3{font-size:15px;font-weight:600;color:#1f2937}
+.card-header p{font-size:12px;color:#9ca3af;margin-top:2px}
+table.data{width:100%;font-size:13px}
+table.data thead tr{background:#f9fafb}
+table.data th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase}
+table.data td{padding:12px 16px}
+table.data tbody tr{border-top:1px solid #f9fafb}
+table.data tbody tr:hover{background:#f9fafb}
+.badge{padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;display:inline-block}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-yellow{background:#fef9c3;color:#a16207}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-gray{background:#f3f4f6;color:#374151}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-purple{background:#f3e8ff;color:#7c3aed}
+.badge-orange{background:#ffedd5;color:#c2410c}
+.badge-emerald{background:#d1fae5;color:#047857}
+.badge-indigo{background:#e0e7ff;color:#4338ca}
+.avatar{width:32px;height:32px;background:linear-gradient(135deg,#60a5fa,#6366f1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;flex-shrink:0}
+.emp-cell{display:flex;align-items:center;gap:10px}
+.emp-name{font-weight:500;font-size:12px;color:#1f2937}
+.emp-num{font-size:10px;color:#9ca3af}
+.text-green{color:#16a34a}
+.text-red{color:#dc2626}
+.text-blue{color:#2563eb}
+.text-gray{color:#6b7280}
+.text-right{text-align:right}
+.text-center{text-align:center}
+.font-bold{font-weight:700}
+.font-medium{font-weight:500}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-outline{background:#fff;color:#4b5563;border:1px solid #e5e7eb}
+.btn-outline:hover{background:#f9fafb}
+.btn-success{background:#16a34a;color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-sm{padding:4px 8px;font-size:11px;border-radius:4px}
+.btn-icon{padding:6px;background:none;border:none;color:#9ca3af;border-radius:4px}
+.btn-icon:hover{color:#4b5563;background:#f3f4f6}
+.input{padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;width:100%}
+.input:focus{border-color:#93c5fd;box-shadow:0 0 0 2px rgba(59,130,246,.1)}
+.select{padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fff}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+.toolbar-left{display:flex;gap:12px;align-items:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{background:#fff;border-radius:12px;padding:24px;width:400px;box-shadow:0 20px 25px -5px rgba(0,0,0,.1)}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;font-weight:500;color:#4b5563;margin-bottom:4px}
+.gradient-green{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:12px;padding:20px}
+.gradient-green .label{font-size:13px;color:#15803d;font-weight:500}
+.gradient-green .value{font-size:28px;font-weight:700;color:#14532d;margin-top:4px}
+.gradient-green .sub{font-size:12px;color:#16a34a;margin-top:4px}
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-bottom:16px}
+.info-box p{font-size:12px;color:#1d4ed8}
+.tab-group{display:flex;background:#f3f4f6;border-radius:8px;padding:2px;width:fit-content;margin-bottom:16px}
+.tab-btn{padding:8px 16px;border-radius:6px;border:none;background:transparent;font-size:13px;font-weight:500;color:#6b7280;cursor:pointer}
+.tab-btn.active{background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.emp-card{background:#fff;border-radius:12px;border:1px solid #f3f4f6;margin-bottom:16px;overflow:hidden}
+.emp-card-header{padding:16px;border-bottom:1px solid #f3f4f6;background:#f9fafb;display:flex;justify-content:space-between;align-items:center}
+.emp-card-total{font-weight:700;color:#2563eb}
+.emp-card-sub{font-size:10px;color:#9ca3af}
+.chat-container{background:#fff;border-radius:12px;border:1px solid #f3f4f6;overflow:hidden;height:calc(100vh - 180px);display:flex}
+.chat-sidebar{width:300px;border-right:1px solid #f3f4f6;display:flex;flex-direction:column}
+.chat-sidebar-header{padding:12px;border-bottom:1px solid #f3f4f6;font-size:13px;font-weight:600}
+.chat-list{flex:1;overflow-y:auto}
+.chat-item{width:100%;padding:12px;text-align:left;border:none;border-bottom:1px solid #f9fafb;cursor:pointer;background:transparent;display:flex;align-items:center;gap:10px}
+.chat-item:hover{background:#f9fafb}
+.chat-item.active{background:#eff6ff}
+.chat-main{flex:1;display:flex;flex-direction:column}
+.chat-header{padding:16px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.chat-input{padding:16px;border-top:1px solid #f3f4f6;display:flex;gap:8px}
+.msg-bubble{max-width:70%;padding:8px 12px;border-radius:12px;font-size:13px}
+.msg-out{background:#2563eb;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.msg-in{background:#f3f4f6;color:#1f2937;align-self:flex-start;border-bottom-left-radius:4px}
+.msg-time{font-size:9px;margin-top:4px;opacity:.7}
+.report-summary{background:#fff;border-radius:12px;border:1px solid #f3f4f6;padding:20px;margin-bottom:16px}
+.report-summary h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.report-card{border-radius:8px;padding:12px}
+.report-card .label{font-size:10px;font-weight:500}
+.report-card .value{font-size:18px;font-weight:700;margin-top:4px}
+.log-change{display:flex;align-items:center;gap:4px;font-size:12px}
+.log-old{color:#ef4444;text-decoration:line-through}
+.log-arrow{color:#9ca3af}
+.log-new{color:#16a34a;font-weight:500}
+.empty-state{padding:32px;text-align:center;color:#9ca3af;font-size:14px}
+.inline-edit{display:flex;align-items:center;gap:4px;justify-content:flex-end}
+.inline-input{width:80px;padding:4px 8px;border:1px solid #93c5fd;border-radius:4px;font-size:12px;text-align:right;outline:none}
+.inline-input:focus{box-shadow:0 0 0 2px rgba(59,130,246,.1)}
+.sync-indicator{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500}
+.sync-ok{background:#dcfce7;color:#15803d}
+.sync-error{background:#fee2e2;color:#b91c1c}
+.sync-pending{background:#fef9c3;color:#a16207}
+</style>
+</head>
+<body>
+<div id="root">Загрузка...</div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="./google-sheets-api.js"></script>
+
+<script>
+// Инициализация Google Sheets API
+let sheetsAPI = null;
+let syncInterval = null;
+
+function initSheetsAPI(url) {
+  if (!url || !window.GoogleSheetsAPI) return null;
+  sheetsAPI = new window.GoogleSheetsAPI(url);
+  return sheetsAPI;
+}
+
+async function loadFromSheets() {
+  if (!sheetsAPI) return null;
+  try {
+    return await sheetsAPI.loadAllData();
+  } catch (error) {
+    console.error('Failed to load from Sheets:', error);
+    return null;
+  }
+}
+
+// Старый GoogleSheetsAPI класс (закомментирован, используется внешний файл)
+/*
+class GoogleSheetsAPI {
+  constructor(webAppUrl) {
+    this.webAppUrl = webAppUrl;
+    this.cache = new Map();
+    this.syncQueue = [];
+    this.isSyncing = false;
+  }
+
+  async read(sheetName) {
+    try {
+      const url = `${this.webAppUrl}?action=read&sheet=${encodeURIComponent(sheetName)}`;
+      const response = await fetch(url);
+      const result = await response.json();
+      if (result.success) {
+        this.cache.set(sheetName, result.data);
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to read');
+    } catch (error) {
+      console.error(`Error reading ${sheetName}:`, error);
+      return this.cache.get(sheetName) || [];
+    }
+  }
+
+  async write(sheetName, data) {
+    try {
+      const url = `${this.webAppUrl}?action=write&sheet=${encodeURIComponent(sheetName)}&data=${encodeURIComponent(JSON.stringify(data))}`;
+      const response = await fetch(url);
+      const result = await response.json();
+      if (result.success) {
+        const cached = this.cache.get(sheetName) || [];
+        cached.push(data);
+        this.cache.set(sheetName, cached);
+        return true;
+      }
+      throw new Error(result.error || 'Failed to write');
+    } catch (error) {
+      console.error(`Error writing to ${sheetName}:`, error);
+      this.syncQueue.push({ action: 'write', sheet: sheetName, data });
+      return false;
+    }
+  }
+
+  async update(sheetName, id, data, idColumn = 'id') {
+    try {
+      const url = `${this.webAppUrl}?action=update&sheet=${encodeURIComponent(sheetName)}&id=${encodeURIComponent(id)}&idColumn=${encodeURIComponent(idColumn)}&data=${encodeURIComponent(JSON.stringify(data))}`;
+      const response = await fetch(url);
+      const result = await response.json();
+      if (result.success) {
+        const cached = this.cache.get(sheetName) || [];
+        const index = cached.findIndex(item => item[idColumn] === id);
+        if (index !== -1) {
+          cached[index] = { ...cached[index], ...data };
+          this.cache.set(sheetName, cached);
+        }
+        return true;
+      }
+      throw new Error(result.error || 'Failed to update');
+    } catch (error) {
+      console.error(`Error updating ${sheetName}:`, error);
+      this.syncQueue.push({ action: 'update', sheet: sheetName, id, data, idColumn });
+      return false;
+    }
+  }
+
+  async delete(sheetName, id, idColumn = 'id') {
+    try {
+      const url = `${this.webAppUrl}?action=delete&sheet=${encodeURIComponent(sheetName)}&id=${encodeURIComponent(id)}&idColumn=${encodeURIComponent(idColumn)}`;
+      const response = await fetch(url);
+      const result = await response.json();
+      if (result.success) {
+        const cached = this.cache.get(sheetName) || [];
+        const filtered = cached.filter(item => item[idColumn] !== id);
+        this.cache.set(sheetName, filtered);
+        return true;
+      }
+      throw new Error(result.error || 'Failed to delete');
+    } catch (error) {
+      console.error(`Error deleting from ${sheetName}:`, error);
+      this.syncQueue.push({ action: 'delete', sheet: sheetName, id, idColumn });
+      return false;
+    }
+  }
+
+  async syncQueue() {
+    if (this.isSyncing || this.syncQueue.length === 0) return;
+    this.isSyncing = true;
+    console.log(`Syncing ${this.syncQueue.length} pending changes...`);
+    const queue = [...this.syncQueue];
+    this.syncQueue = [];
+    for (const item of queue) {
+      try {
+        if (item.action === 'write') await this.write(item.sheet, item.data);
+        else if (item.action === 'update') await this.update(item.sheet, item.id, item.data, item.idColumn);
+        else if (item.action === 'delete') await this.delete(item.sheet, item.id, item.idColumn);
+      } catch (error) {
+        console.error('Sync failed:', item, error);
+        this.syncQueue.push(item);
+      }
+    }
+    this.isSyncing = false;
+    if (this.syncQueue.length > 0) setTimeout(() => this.syncQueue(), 5000);
+  }
+
+  async loadAllData() {
+    const sheets = ['Сотрудники','Номенклатура','Расход','Возвраты','Сообщения','Журнал','Уведомления','Остатки'];
+    const results = {};
+    for (const sheet of sheets) {
+      results[sheet] = await this.read(sheet);
+    }
+    return results;
+  }
+
+  async testConnection() {
+    try {
+      const url = `${this.webAppUrl}?action=read&sheet=Сотрудники`;
+      const response = await fetch(url);
+      const result = await response.json();
+      return result.success;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  getQueueSize() {
+    return this.syncQueue.length;
+  }
+}
+
+window.GoogleSheetsAPI = GoogleSheetsAPI;
+</script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+// Google Sheets API
+let sheetsAPI = null;
+let syncInterval = null;
+
+function initSheetsAPI(url) {
+  if (!url) return null;
+  sheetsAPI = new GoogleSheetsAPI(url);
+  return sheetsAPI;
+}
+
+async function loadFromSheets() {
+  if (!sheetsAPI) return null;
+  try {
+    return await sheetsAPI.loadAllData();
+  } catch (error) {
+    console.error('Failed to load from Sheets:', error);
+    return null;
+  }
+}
+
+// ====== ДАННЫЕ ======
+const initialEmployees = [
+  { id:'emp001', fullName:'Иванов Иван Иванович', personalNumber:'1001', status:'active', hireDate:'2023-01-15', shifts:22, income:45000, lastExpenseDate:'2024-03-28', blocked:false },
+  { id:'emp002', fullName:'Петров Пётр Сергеевич', personalNumber:'1002', status:'active', hireDate:'2023-03-01', shifts:20, income:42000, lastExpenseDate:'2024-03-27', blocked:false },
+  { id:'emp003', fullName:'Сидорова Анна Михайловна', personalNumber:'1003', status:'active', hireDate:'2023-05-10', shifts:18, income:38000, lastExpenseDate:'2024-03-28', blocked:false },
+  { id:'emp004', fullName:'Козлов Дмитрий Алексеевич', personalNumber:'1004', status:'vacation', hireDate:'2022-11-20', shifts:0, income:0, lastExpenseDate:'2024-03-15', blocked:false },
+  { id:'emp005', fullName:'Морозова Елена Викторовна', personalNumber:'1005', status:'active', hireDate:'2023-08-01', shifts:21, income:44000, lastExpenseDate:'2024-03-26', blocked:false },
+  { id:'emp006', fullName:'Волков Андрей Николаевич', personalNumber:'1006', status:'active', hireDate:'2024-01-10', shifts:19, income:40000, lastExpenseDate:'2024-03-28', blocked:false },
+  { id:'emp007', fullName:'Новикова Ольга Дмитриевна', personalNumber:'1007', status:'inactive', hireDate:'2022-06-15', shifts:0, income:0, lastExpenseDate:'2024-02-28', blocked:false },
+  { id:'emp008', fullName:'Федоров Максим Игоревич', personalNumber:'1008', status:'active', hireDate:'2023-09-01', shifts:22, income:46000, lastExpenseDate:'2024-03-28', blocked:false },
+  { id:'emp009', fullName:'Соколова Мария Андреевна', personalNumber:'1009', status:'active', hireDate:'2023-04-20', shifts:17, income:36000, lastExpenseDate:'2024-03-25', blocked:false },
+  { id:'emp010', fullName:'Лебедев Сергей Павлович', personalNumber:'1010', status:'blocked', hireDate:'2022-12-01', shifts:0, income:0, lastExpenseDate:'2024-03-01', blocked:true },
+];
+
+const initialNomenclature = [
+  { id:'nom001', name:'Анальгин', category:'medicine', unit:'ампулы', price:45, lastPriceChange:'2024-03-15' },
+  { id:'nom002', name:'Дротаверин', category:'medicine', unit:'ампулы', price:32, lastPriceChange:'2024-03-10' },
+  { id:'nom003', name:'Дексаметазон', category:'medicine', unit:'ампулы', price:78, lastPriceChange:'2024-02-20' },
+  { id:'nom004', name:'Физраствор 0.9%', category:'medicine', unit:'флаконы', price:55, lastPriceChange:'2024-03-01' },
+  { id:'nom005', name:'Шприц 5мл', category:'consumable', unit:'штуки', price:12, lastPriceChange:'2024-01-15' },
+  { id:'nom006', name:'Шприц 10мл', category:'consumable', unit:'штуки', price:15, lastPriceChange:'2024-01-15' },
+  { id:'nom007', name:'Бинт стерильный', category:'consumable', unit:'штуки', price:28, lastPriceChange:'2024-02-01' },
+  { id:'nom008', name:'Вата', category:'consumable', unit:'штуки', price:35, lastPriceChange:'2024-02-01' },
+  { id:'nom009', name:'Тонометр', category:'equipment', unit:'штуки', price:3500, lastPriceChange:'2024-01-01' },
+  { id:'nom010', name:'Пульсоксиметр', category:'equipment', unit:'штуки', price:4200, lastPriceChange:'2024-01-01' },
+  { id:'nom011', name:'Сумка-холодильник', category:'equipment', unit:'штуки', price:2800, lastPriceChange:'2024-01-01' },
+  { id:'nom012', name:'Димедрол', category:'medicine', unit:'ампулы', price:38, lastPriceChange:'2024-03-05' },
+];
+
+const initialExpenses = [
+  { id:'e1', date:'2024-03-28', employeeId:'emp001', patientName:'Жуков Виктор Петрович', patientDob:'1980-05-12', nomenclatureId:'nom001', quantity:2, priceAtMoment:45, totalSum:90 },
+  { id:'e2', date:'2024-03-28', employeeId:'emp001', patientName:'Жуков Виктор Петрович', patientDob:'1980-05-12', nomenclatureId:'nom005', quantity:3, priceAtMoment:12, totalSum:36 },
+  { id:'e3', date:'2024-03-28', employeeId:'emp001', patientName:'Белова Наталья Сергеевна', patientDob:'1975-08-23', nomenclatureId:'nom002', quantity:1, priceAtMoment:32, totalSum:32 },
+  { id:'e4', date:'2024-03-27', employeeId:'emp002', patientName:'Кузнецов Олег Дмитриевич', patientDob:'1990-03-15', nomenclatureId:'nom001', quantity:4, priceAtMoment:45, totalSum:180 },
+  { id:'e5', date:'2024-03-27', employeeId:'emp002', patientName:'Кузнецов Олег Дмитриевич', patientDob:'1990-03-15', nomenclatureId:'nom003', quantity:2, priceAtMoment:78, totalSum:156 },
+  { id:'e6', date:'2024-03-27', employeeId:'emp003', patientName:'Тихонова Ирина Павловна', patientDob:'1965-11-04', nomenclatureId:'nom004', quantity:1, priceAtMoment:55, totalSum:55 },
+  { id:'e7', date:'2024-03-26', employeeId:'emp005', patientName:'Григорьев Алексей Васильевич', patientDob:'1988-07-19', nomenclatureId:'nom001', quantity:3, priceAtMoment:45, totalSum:135 },
+  { id:'e8', date:'2024-03-25', employeeId:'emp006', patientName:'Орлова Светлана Юрьевна', patientDob:'1972-02-28', nomenclatureId:'nom007', quantity:5, priceAtMoment:28, totalSum:140 },
+  { id:'e9', date:'2024-03-25', employeeId:'emp008', patientName:'Макаров Дмитрий Олегович', patientDob:'1995-09-10', nomenclatureId:'nom012', quantity:2, priceAtMoment:38, totalSum:76 },
+  { id:'e10', date:'2024-03-24', employeeId:'emp001', patientName:'Смирнова Людмила Ивановна', patientDob:'1958-04-17', nomenclatureId:'nom001', quantity:2, priceAtMoment:45, totalSum:90 },
+];
+
+const initialReturns = [
+  { id:'r1', date:'2024-03-27', employeeId:'emp002', nomenclatureId:'nom001', quantity:10, status:'pending' },
+  { id:'r2', date:'2024-03-26', employeeId:'emp005', nomenclatureId:'nom005', quantity:20, status:'approved', confirmedBy:'Руководитель' },
+  { id:'r3', date:'2024-03-25', employeeId:'emp001', nomenclatureId:'nom002', quantity:5, status:'adjusted', adjustedQuantity:4, confirmedBy:'Кладовщик' },
+];
+
+const initialMessages = [
+  { id:'m1', from:'emp001', fromRole:'employee', to:'manager', toRole:'manager', text:'Здравствуйте! Прошу пополнить запас Анальгина, осталось 5 ампул.', date:'2024-03-28 09:15', read:false },
+  { id:'m2', from:'manager', fromRole:'manager', to:'emp001', toRole:'employee', text:'Принято. Завтра будет доставлено.', date:'2024-03-28 09:30', read:true },
+  { id:'m3', from:'emp005', fromRole:'employee', to:'manager', toRole:'manager', text:'Возникла проблема с тонометром, не работает.', date:'2024-03-26 11:45', read:false },
+];
+
+const initialLog = [
+  { id:'l1', timestamp:'2024-03-28 09:30', userName:'Руководитель', role:'Руководитель', action:'Отправка сообщения', objectType:'Сообщение', oldValue:'—', newValue:'Сообщение для emp001' },
+  { id:'l2', timestamp:'2024-03-15 14:30', userName:'Руководитель', role:'Руководитель', action:'Изменение цены', objectType:'Номенклатура nom001', oldValue:'40 ₽', newValue:'45 ₽' },
+  { id:'l3', timestamp:'2024-03-01 09:00', userName:'Руководитель', role:'Руководитель', action:'Начисление прихода', objectType:'Сотрудник emp001', oldValue:'0 ₽', newValue:'45 000 ₽' },
+  { id:'l4', timestamp:'2024-02-28 17:00', userName:'Руководитель', role:'Руководитель', action:'Блокировка', objectType:'Сотрудник emp010', oldValue:'active', newValue:'blocked' },
+];
+
+const initialNotifications = [
+  { id:'n1', type:'overexpense', title:'Перерасход!', text:'Петров П.С. — расход превышает приход на 1 200 ₽', date:'2024-03-28 10:00', read:false },
+  { id:'n2', type:'inactivity', title:'Неактивность', text:'Новикова О.Д. не вносит расход более 7 дней', date:'2024-03-27 08:00', read:false },
+  { id:'n3', type:'return', title:'Новый возврат', text:'Иванов И.И. оформил возврат: Дротаверин × 5 ампул', date:'2024-03-25 14:00', read:true },
+  { id:'n4', type:'message', title:'Новое сообщение', text:'Морозова Е.В.: проблема с тонометром', date:'2024-03-26 11:45', read:false },
+];
+
+const initialRemnants = [
+  { employeeId:'emp001', nomenclatureId:'nom001', quantity:45, sumRub:2025 },
+  { employeeId:'emp001', nomenclatureId:'nom002', quantity:20, sumRub:640 },
+  { employeeId:'emp001', nomenclatureId:'nom005', quantity:100, sumRub:1200 },
+  { employeeId:'emp002', nomenclatureId:'nom001', quantity:30, sumRub:1350 },
+  { employeeId:'emp002', nomenclatureId:'nom003', quantity:10, sumRub:780 },
+  { employeeId:'emp003', nomenclatureId:'nom001', quantity:55, sumRub:2475 },
+  { employeeId:'emp003', nomenclatureId:'nom004', quantity:8, sumRub:440 },
+  { employeeId:'emp005', nomenclatureId:'nom001', quantity:40, sumRub:1800 },
+  { employeeId:'emp005', nomenclatureId:'nom009', quantity:1, sumRub:3500 },
+  { employeeId:'emp006', nomenclatureId:'nom001', quantity:35, sumRub:1575 },
+  { employeeId:'emp006', nomenclatureId:'nom007', quantity:30, sumRub:840 },
+  { employeeId:'emp008', nomenclatureId:'nom001', quantity:60, sumRub:2700 },
+  { employeeId:'emp008', nomenclatureId:'nom012', quantity:25, sumRub:950 },
+];
+
+const SvgIcon = ({ path, size=18 }) => (
+  <svg className="nav-icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {path}
+  </svg>
+);
+
+const navIcons = {
+  dashboard: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
+  users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+  package: <><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></>,
+  dollar: <><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></>,
+  archive: <><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></>,
+  arrows: <><polyline points="7 16 3 12 7 8"/><line x1="3" y1="12" x2="21" y2="12"/><polyline points="17 8 21 12 17 16"/></>,
+  chat: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
+  file: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>,
+  scroll: <><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></>,
+  bell: <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
+  settings: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
+  plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+  check: <polyline points="20 6 9 17 4 12"/>,
+  edit: <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
+  trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
+  lock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+  unlock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></>,
+  save: <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>,
+  send: <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
+  alert: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
+  x: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+  cloud: <><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></>,
+};
+
+const getInitials = (name) => name.split(' ').map(w => w[0]).slice(0,2).join('');
+const fmt = (n) => n.toLocaleString('ru-RU');
+
+// ====== ОСНОВНОЕ ПРИЛОЖЕНИЕ ======
+function App() {
+  const [page, setPage] = useState('dashboard');
+  const [employees, setEmployees] = useState(initialEmployees);
+  const [nomenclature, setNomenclature] = useState(initialNomenclature);
+  const [expenses] = useState(initialExpenses);
+  const [returns, setReturns] = useState(initialReturns);
+  const [messages, setMessages] = useState(initialMessages);
+  const [log, setLog] = useState(initialLog);
+  const [notifications] = useState(initialNotifications);
+  const [remnants] = useState(initialRemnants);
+  
+  // Google Sheets настройки
+  const [sheetsUrl, setSheetsUrl] = useState(localStorage.getItem('sheetsUrl') || '');
+  const [isConnected, setIsConnected] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('');
+  
+  useEffect(() => {
+    if (sheetsUrl) {
+      initSheetsAPI(sheetsUrl);
+      testConnection();
+    }
+  }, [sheetsUrl]);
+  
+  useEffect(() => {
+    if (isConnected && sheetsAPI) {
+      syncInterval = setInterval(() => syncData(), 30000);
+      return () => clearInterval(syncInterval);
+    }
+  }, [isConnected]);
+  
+  async function testConnection() {
+    if (!sheetsAPI) return;
+    setIsSyncing(true);
+    setSyncStatus('Проверка подключения...');
+    const connected = await sheetsAPI.testConnection();
+    setIsConnected(connected);
+    setSyncStatus(connected ? '✅ Подключено к Google Sheets' : '❌ Ошибка подключения');
+    setIsSyncing(false);
+    if (connected) {
+      setSyncStatus('✅ Загрузка данных...');
+      const data = await loadFromSheets();
+      if (data) setSyncStatus('✅ Данные синхронизированы');
+    }
+  }
+  
+  async function syncData() {
+    if (!sheetsAPI || !isConnected) return;
+    setIsSyncing(true);
+    setSyncStatus('⚡ Синхронизация...');
+    await sheetsAPI.syncQueue();
+    setSyncStatus('✅ Синхронизировано');
+    setIsSyncing(false);
+    setTimeout(() => setSyncStatus(''), 2000);
+  }
+  
+  function saveSheetsUrl(url) {
+    localStorage.setItem('sheetsUrl', url);
+    setSheetsUrl(url);
+    if (url) {
+      initSheetsAPI(url);
+      testConnection();
+    } else {
+      sheetsAPI = null;
+      setIsConnected(false);
+    }
+  }
+
+  const addLog = (action, objectType, oldValue, newValue) => {
+    const entry = { id:'l'+Date.now(), timestamp: new Date().toLocaleString('ru-RU'), userName:'Руководитель', role:'Руководитель', action, objectType, oldValue, newValue };
+    setLog(prev => [entry, ...prev]);
+    if (sheetsAPI && isConnected) sheetsAPI.write('Журнал', entry);
+  };
+
+  const navItems = [
+    { id:'dashboard', label:'Панель', icon: navIcons.dashboard },
+    { id:'employees', label:'Сотрудники', icon: navIcons.users },
+    { id:'nomenclature', label:'Номенклатура', icon: navIcons.package },
+    { id:'income', label:'Приход', icon: navIcons.dollar },
+    { id:'remnants', label:'Остатки', icon: navIcons.archive },
+    { id:'expenses', label:'Расход', icon: navIcons.arrows },
+    { id:'returns', label:'Возвраты', icon: navIcons.arrows },
+    { id:'chat', label:'Чат', icon: navIcons.chat },
+    { id:'reports', label:'Отчёты', icon: navIcons.file },
+    { id:'log', label:'Журнал', icon: navIcons.scroll },
+    { id:'settings', label:'Настройки', icon: navIcons.settings },
+  ];
+
+  const unreadNotifs = notifications.filter(n => !n.read).length;
+  const unreadMsgs = messages.filter(m => !m.read && m.to === 'manager').length;
+  const queueSize = sheetsAPI ? sheetsAPI.getQueueSize() : 0;
+
+  return (
+    <div className="app">
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <div className="sidebar-logo">
+            <div className="sidebar-logo-icon">💊</div>
+            <div className="sidebar-logo-text">
+              <h1>МедУчёт</h1>
+              <p>Выездное подразделение</p>
+            </div>
+          </div>
+        </div>
+        <nav className="sidebar-nav">
+          {navItems.map(item => {
+            const isActive = page === item.id;
+            const badge = item.id === 'chat' ? unreadMsgs : item.id === 'dashboard' ? unreadNotifs : 0;
+            return (
+              <button key={item.id} className={`nav-btn ${isActive ? 'active' : ''}`} onClick={() => setPage(item.id)}>
+                <SvgIcon path={item.icon} />
+                <span className="nav-label">{item.label}</span>
+                {badge > 0 && <span className="nav-badge">{badge}</span>}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="sidebar-footer">
+          {isConnected && (
+            <div style={{marginBottom:12,padding:'6px 10px',borderRadius:6,background:queueSize>0?'#fef9c3':'#dcfce7',fontSize:11,fontWeight:500,color:queueSize>0?'#a16207':'#15803d',display:'flex',alignItems:'center',gap:6}}>
+              <SvgIcon path={navIcons.cloud} size={12} />
+              {queueSize > 0 ? `Ожидает: ${queueSize}` : 'Google Sheets'}
+            </div>
+          )}
+          <div className="user-info">
+            <div className="user-avatar">РВ</div>
+            <div>
+              <div className="user-name">Руководитель</div>
+              <div className="user-role">Выездное подразделение</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main">
+        <header className="header">
+          <div>
+            <h2>{navItems.find(n => n.id === page)?.label}</h2>
+            <p>Март 2024 {isConnected && <span style={{color:'#15803d',fontSize:11}}>• Google Sheets</span>}</p>
+          </div>
+          <div className="header-right">
+            {syncStatus && <span style={{fontSize:11,color:'#6b7280'}}>{syncStatus}</span>}
+            <button className="bell-btn" onClick={() => setPage('dashboard')}>
+              <SvgIcon path={navIcons.bell} size={20} />
+              {unreadNotifs > 0 && <span className="bell-badge">{unreadNotifs}</span>}
+            </button>
+            <div className="header-divider"></div>
+            <div className="header-user">
+              <div className="header-user-name">Сидоров А.В.</div>
+              <div className="header-user-role">Руководитель</div>
+            </div>
+          </div>
+        </header>
+
+        <div className="content">
+          {page === 'dashboard' && <Dashboard employees={employees} expenses={expenses} notifications={notifications} nomenclature={nomenclature} returns={returns} remnants={remnants} />}
+          {page === 'employees' && <Employees employees={employees} setEmployees={setEmployees} addLog={addLog} sheetsAPI={sheetsAPI} isConnected={isConnected} />}
+          {page === 'nomenclature' && <NomenclaturePage nomenclature={nomenclature} setNomenclature={setNomenclature} addLog={addLog} sheetsAPI={sheetsAPI} isConnected={isConnected} />}
+          {page === 'income' && <IncomePage employees={employees} setEmployees={setEmployees} addLog={addLog} sheetsAPI={sheetsAPI} isConnected={isConnected} />}
+          {page === 'remnants' && <RemnantsPage employees={employees} nomenclature={nomenclature} remnants={remnants} />}
+          {page === 'expenses' && <ExpensesPage expenses={expenses} employees={employees} nomenclature={nomenclature} />}
+          {page === 'returns' && <ReturnsPage returns={returns} setReturns={setReturns} employees={employees} nomenclature={nomenclature} addLog={addLog} sheetsAPI={sheetsAPI} isConnected={isConnected} />}
+          {page === 'chat' && <ChatPage messages={messages} setMessages={setMessages} employees={employees} sheetsAPI={sheetsAPI} isConnected={isConnected} />}
+          {page === 'reports' && <ReportsPage employees={employees} expenses={expenses} nomenclature={nomenclature} remnants={remnants} />}
+          {page === 'log' && <LogPage log={log} />}
+          {page === 'settings' && <SettingsPage sheetsUrl={sheetsUrl} isConnected={isConnected} isSyncing={isSyncing} syncStatus={syncStatus} saveSheetsUrl={saveSheetsUrl} testConnection={testConnection} syncData={syncData} queueSize={queueSize} />}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// ====== СТРАНИЦА НАСТРОЕК ======
+function SettingsPage({ sheetsUrl, isConnected, isSyncing, syncStatus, saveSheetsUrl, testConnection, syncData, queueSize }) {
+  const [url, setUrl] = useState(sheetsUrl);
+  const [showInstructions, setShowInstructions] = useState(false);
+
+  return (
+    <div style={{maxWidth:800}}>
+      <div className="card" style={{marginBottom:24}}>
+        <div className="card-header">
+          <h3>🔗 Подключение к Google Sheets</h3>
+          <p>Настройте синхронизацию данных с Google таблицей</p>
+        </div>
+        <div style={{padding:20}}>
+          <div style={{marginBottom:16}}>
+            <label style={{display:'block',fontSize:12,fontWeight:500,color:'#4b5563',marginBottom:4}}>
+              URL веб-приложения Google Apps Script
+            </label>
+            <input className="input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/..." />
+            <p style={{fontSize:11,color:'#9ca3af',marginTop:4}}>
+              Создайте Apps Script в вашей Google таблице и разверните как веб-приложение
+            </p>
+          </div>
+          
+          <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+            <button className="btn btn-primary" onClick={()=>saveSheetsUrl(url)}>💾 Сохранить</button>
+            {isConnected && <button className="btn btn-outline" onClick={testConnection} disabled={isSyncing}>🔄 Проверить</button>}
+            {isConnected && <button className="btn btn-success" onClick={syncData} disabled={isSyncing}>⚡ Синхронизировать</button>}
+          </div>
+          
+          <div style={{padding:12,borderRadius:8,background:isConnected?'#f0fdf4':'#fef2f2',border:`1px solid ${isConnected?'#bbf7d0':'#fecaca'}`}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:18}}>{isConnected?'✅':'❌'}</span>
+              <div>
+                <div style={{fontSize:13,fontWeight:600,color:isConnected?'#15803d':'#b91c1c'}}>
+                  {isConnected?'Подключено к Google Sheets':'Не подключено'}
+                </div>
+                <div style={{fontSize:11,color:'#6b7280'}}>
+                  {syncStatus || (isConnected?'Готово к синхронизации':'Настройте подключение')}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {queueSize > 0 && (
+            <div style={{marginTop:12,padding:12,borderRadius:8,background:'#fff7ed',border:'1px solid #fed7aa'}}>
+              <div style={{fontSize:12,color:'#c2410c'}}>⏳ В очереди на синхронизацию: {queueSize} изменений</div>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="card" style={{marginBottom:24}}>
+        <div className="card-header">
+          <h3>📖 Инструкция по настройке</h3>
+          <p>Пошаговое руководство по подключению Google Sheets</p>
+        </div>
+        <div style={{padding:20}}>
+          <button className="btn btn-outline" onClick={()=>setShowInstructions(!showInstructions)} style={{marginBottom:16}}>
+            {showInstructions?'Скрыть':'Показать'} инструкцию
+          </button>
+          
+          {showInstructions && (
+            <div style={{fontSize:13,lineHeight:1.7,color:'#374151'}}>
+              <h4 style={{fontSize:14,fontWeight:600,marginBottom:8}}>1. Создайте Google таблицу</h4>
+              <p style={{marginBottom:12}}>
+                Откройте <a href="https://sheets.google.com" target="_blank" style={{color:'#2563eb'}}>Google Sheets</a> и создайте новую таблицу "МедУчёт"
+              </p>
+              
+              <h4 style={{fontSize:14,fontWeight:600,marginBottom:8}}>2. Создайте листы</h4>
+              <p style={{marginBottom:12}}>Создайте листы: <strong>Сотрудники, Номенклатура, Расход, Возвраты, Сообщения, Журнал, Уведомления, Остатки</strong></p>
+              
+              <h4 style={{fontSize:14,fontWeight:600,marginBottom:8}}>3. Добавьте Apps Script</h4>
+              <p style={{marginBottom:12}}>
+                <strong>Расширения → Apps Script</strong> → вставьте код из файла <code style={{background:'#f3f4f6',padding:'2px 6px',borderRadius:4}}>google-sheets-api.js</code>
+              </p>
+              <p style={{marginBottom:12}}>Замените <code style={{background:'#f3f4f6',padding:'2px 6px',borderRadius:4}}>SPREADSHEET_ID</code> на ID вашей таблицы</p>
+              
+              <h4 style={{fontSize:14,fontWeight:600,marginBottom:8}}>4. Разверните веб-приложение</h4>
+              <p style={{marginBottom:12}}>
+                <strong>Развернуть → Новое развертывание</strong> → тип "Веб-приложение" → доступ "Все"
+              </p>
+              
+              <h4 style={{fontSize:14,fontWeight:600,marginBottom:8}}>5. Скопируйте URL</h4>
+              <p style={{marginBottom:12}}>Скопируйте URL и вставьте в поле выше → Сохранить</p>
+              
+              <div style={{marginTop:16,padding:12,background:'#eff6ff',borderRadius:8,border:'1px solid #bfdbfe'}}>
+                <p style={{fontSize:12,color:'#1d4ed8',margin:0}}>
+                  💡 Подробная инструкция в файле <strong>GOOGLE_SHEETS_SETUP.md</strong>
+                </p>
+              </div>
+              
+              <h4 style={{fontSize:14,fontWeight:600,margin:'16px 0 8px'}}>Структура листов</h4>
+              <div style={{background:'#f9fafb',borderRadius:8,padding:12,fontSize:12,fontFamily:'monospace',lineHeight:1.8}}>
+                <div><strong>Сотрудники:</strong> id | fullName | personalNumber | status | hireDate | shifts | income | lastExpenseDate | blocked</div>
+                <div><strong>Номенклатура:</strong> id | name | category | unit | price | lastPriceChange</div>
+                <div><strong>Расход:</strong> id | date | employeeId | patientName | patientDob | nomenclatureId | quantity | priceAtMoment | totalSum</div>
+                <div><strong>Возвраты:</strong> id | date | employeeId | nomenclatureId | quantity | status | adjustedQuantity | confirmedBy | comment</div>
+                <div><strong>Сообщения:</strong> id | from | fromRole | to | toRole | text | date | read</div>
+                <div><strong>Журнал:</strong> id | timestamp | userName | role | action | objectType | oldValue | newValue | comment</div>
+                <div><strong>Уведомления:</strong> id | type | title | text | date | read</div>
+                <div><strong>Остатки:</strong> employeeId | nomenclatureId | quantity | sumRub</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="card">
+        <div className="card-header">
+          <h3>ℹ️ О приложении</h3>
+          <p>Информация о системе</p>
+        </div>
+        <div style={{padding:20,fontSize:13,color:'#4b5563',lineHeight:1.8}}>
+          <p><strong>Версия:</strong> 1.1.0 (с интеграцией Google Sheets)</p>
+          <p><strong>Хранилище:</strong> {isConnected?'Google Sheets':'Локальное (demo)'}</p>
+          <p><strong>Сотрудников:</strong> {initialEmployees.length}</p>
+          <p><strong>Позиций номенклатуры:</strong> {initialNomenclature.length}</p>
+          <p style={{marginTop:12,fontSize:12,color:'#9ca3af'}}>
+            Система учёта лекарственных средств, оборудования и расходных материалов для выездного подразделения
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ====== ПАНЕЛЬ ======
+function Dashboard({ employees, expenses, notifications, nomenclature, returns, remnants }) {
+  const active = employees.filter(e => e.status === 'active');
+  const totalIncome = employees.reduce((s, e) => s + e.income, 0);
+  const totalExpense = expenses.reduce((s, e) => s + e.totalSum, 0);
+  const totalRemnant = remnants.reduce((s, r) => s + r.sumRub, 0);
+  const unread = notifications.filter(n => !n.read);
+
+  const empData = employees.map(emp => {
+    const empExp = expenses.filter(e => e.employeeId === emp.id);
+    const totalExp = empExp.reduce((s, e) => s + e.totalSum, 0);
+    const patients = new Set(empExp.map(e => e.patientName)).size;
+    return { ...emp, totalExp, patients, diff: emp.income - totalExp };
+  });
+
+  return (
+    <div>
+      <div className="kpi-grid">
+        <div className="kpi-card"><div className="kpi-label">Общий приход</div><div className="kpi-value" style={{color:'#16a34a'}}>{fmt(totalIncome)} ₽</div></div>
+        <div className="kpi-card"><div className="kpi-label">Общий расход</div><div className="kpi-value" style={{color:'#dc2626'}}>{fmt(totalExpense)} ₽</div></div>
+        <div className="kpi-card"><div className="kpi-label">Остаток подразд.</div><div className="kpi-value" style={{color:'#2563eb'}}>{fmt(totalRemnant)} ₽</div></div>
+        <div className="kpi-card"><div className="kpi-label">Сотрудники</div><div className="kpi-value">{active.length} / {employees.length}</div></div>
+      </div>
+
+      {unread.length > 0 && unread.map(n => (
+        <div key={n.id} className={`alert alert-${n.type==='overexpense'?'red':n.type==='inactivity'?'yellow':n.type==='return'?'orange':'blue'}`}>
+          <SvgIcon path={navIcons.alert} size={18} />
+          <div><div style={{fontSize:13,fontWeight:600}}>{n.title}</div><div style={{fontSize:12,color:'#6b7280'}}>{n.text}</div></div>
+        </div>
+      ))}
+
+      <div className="card">
+        <div className="card-header"><h3>Сотрудники — обзор за март</h3><p>Приход, расход, разница и количество пациентов</p></div>
+        <div style={{overflowX:'auto'}}>
+          <table className="data">
+            <thead><tr><th>Сотрудник</th><th>Статус</th><th className="text-right">Приход (₽)</th><th className="text-right">Расход (₽)</th><th className="text-right">Разница (₽)</th><th className="text-center">Пациентов</th><th className="text-center">Смен</th></tr></thead>
+            <tbody>
+              {empData.map(emp => (
+                <tr key={emp.id}>
+                  <td><div className="emp-cell"><div className="avatar">{getInitials(emp.fullName)}</div><div><div className="emp-name">{emp.fullName}</div><div className="emp-num">№{emp.personalNumber}</div></div></div></td>
+                  <td><span className={`badge ${emp.status==='active'?'badge-green':emp.status==='vacation'?'badge-yellow':emp.status==='blocked'?'badge-red':'badge-gray'}`}>{emp.status==='active'?'Активен':emp.status==='vacation'?'Отпуск':emp.status==='blocked'?'Заблокирован':'Неактивен'}</span></td>
+                  <td className="text-right font-medium text-green">{fmt(emp.income)} ₽</td>
+                  <td className="text-right font-medium text-red">{fmt(emp.totalExp)} ₽</td>
+                  <td className={`text-right font-bold ${emp.diff>=0?'text-green':'text-red'}`}>{emp.diff>=0?'+':''}{fmt(emp.diff)} ₽</td>
+                  <td className="text-center font-medium">{emp.patients}</td>
+                  <td className="text-center">{emp.shifts}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ====== СОТРУДНИКИ ======
+function Employees({ employees, setEmployees, addLog, sheetsAPI, isConnected }) {
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newNum, setNewNum] = useState('');
+
+  const filtered = employees.filter(e => {
+    const ms = e.fullName.toLowerCase().includes(search.toLowerCase()) || e.personalNumber.includes(search);
+    const mf = filter === 'all' || e.status === filter;
+    return ms && mf;
+  });
+
+  const statusLabel = { active:'Активен', inactive:'Неактивен', vacation:'Отпуск', blocked:'Заблокирован' };
+
+  return (
+    <div>
+      <div className="toolbar">
+        <div className="toolbar-left">
+          <input className="input" style={{width:220}} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск..." />
+          <select className="select" value={filter} onChange={e=>setFilter(e.target.value)}>
+            <option value="all">Все статусы</option>
+            <option value="active">Активные</option>
+            <option value="vacation">В отпуске</option>
+            <option value="blocked">Заблокированные</option>
+            <option value="inactive">Неактивные</option>
+          </select>
+        </div>
+        <button className="btn btn-primary" onClick={()=>setShowAdd(true)}><SvgIcon path={navIcons.plus} size={16} /> Добавить</button>
+      </div>
+
+      {showAdd && (
+        <div className="modal-overlay" onClick={()=>setShowAdd(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h3>Новый сотрудник</h3>
+            <div className="form-group"><label>ФИО *</label><input className="input" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Иванов Иван Иванович" /></div>
+            <div className="form-group"><label>Персональный номер *</label><input className="input" value={newNum} onChange={e=>setNewNum(e.target.value)} placeholder="1011" /></div>
+            <div className="modal-actions">
+              <button className="btn btn-outline" onClick={()=>setShowAdd(false)}>Отмена</button>
+              <button className="btn btn-primary" onClick={()=>{
+                if(!newName||!newNum) return;
+                const emp = { id:'emp'+Date.now(), fullName:newName, personalNumber:newNum, status:'active', hireDate:new Date().toISOString().split('T')[0], shifts:0, income:0, lastExpenseDate:null, blocked:false };
+                setEmployees([...employees, emp]);
+                addLog('Добавление сотрудника','Сотрудник '+emp.id,'—',emp.fullName);
+                if (sheetsAPI && isConnected) sheetsAPI.write('Сотрудники', emp);
+                setShowAdd(false); setNewName(''); setNewNum('');
+              }}>Добавить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <table className="data">
+          <thead><tr><th>Сотрудник</th><th>№</th><th>Статус</th><th>Дата найма</th><th>Смен</th><th>Действия</th></tr></thead>
+          <tbody>
+            {filtered.map(emp => (
+              <tr key={emp.id}>
+                <td className="font-medium">{emp.fullName}</td>
+                <td style={{fontFamily:'monospace',fontSize:12,color:'#6b7280'}}>{emp.personalNumber}</td>
+                <td><span className={`badge ${emp.status==='active'?'badge-green':emp.status==='vacation'?'badge-yellow':emp.status==='blocked'?'badge-red':'badge-gray'}`}>{statusLabel[emp.status]}</span></td>
+                <td style={{fontSize:12,color:'#6b7280'}}>{emp.hireDate}</td>
+                <td>{emp.shifts}</td>
+                <td>
+                  <div style={{display:'flex',gap:4}}>
+                    {emp.status !== 'blocked' ? (
+                      <button className="btn-icon" title="Заблокировать" onClick={()=>{
+                        setEmployees(employees.map(e=>e.id===emp.id?{...e,status:'blocked',blocked:true}:e));
+                        addLog('Блокировка','Сотрудник '+emp.id,emp.status,'blocked');
+                        if (sheetsAPI && isConnected) sheetsAPI.update('Сотрудники', emp.id, {status:'blocked',blocked:true});
+                      }}><SvgIcon path={navIcons.lock} size={14} /></button>
+                    ) : (
+                      <button className="btn-icon" title="Разблокировать" onClick={()=>{
+                        setEmployees(employees.map(e=>e.id===emp.id?{...e,status:'active',blocked:false}:e));
+                        addLog('Разблокировка','Сотрудник '+emp.id,'blocked','active');
+                        if (sheetsAPI && isConnected) sheetsAPI.update('Сотрудники', emp.id, {status:'active',blocked:false});
+                      }}><SvgIcon path={navIcons.unlock} size={14} /></button>
+                    )}
+                    <button className="btn-icon" title="Удалить" onClick={()=>{if(confirm('Удалить '+emp.fullName+'?')){
+                      setEmployees(employees.filter(e=>e.id!==emp.id));
+                      if (sheetsAPI && isConnected) sheetsAPI.delete('Сотрудники', emp.id);
+                    }}}><SvgIcon path={navIcons.trash} size={14} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ====== НОМЕНКЛАТУРА ======
+function NomenclaturePage({ nomenclature, setNomenclature, addLog, sheetsAPI, isConnected }) {
+  const [search, setSearch] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [newPrice, setNewPrice] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [newItem, setNewItem] = useState({ name:'', category:'medicine', unit:'ампулы', price:0 });
+
+  const filtered = nomenclature.filter(n => n.name.toLowerCase().includes(search.toLowerCase()));
+  const catLabels = { medicine:'Лекарство', equipment:'Оборудование', consumable:'Расходный материал' };
+  const catColors = { medicine:'badge-blue', equipment:'badge-purple', consumable:'badge-green' };
+
+  return (
+    <div>
+      <div className="toolbar">
+        <input className="input" style={{width:250}} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск..." />
+        <button className="btn btn-primary" onClick={()=>setShowAdd(true)}><SvgIcon path={navIcons.plus} size={16} /> Добавить</button>
+      </div>
+
+      {showAdd && (
+        <div className="modal-overlay" onClick={()=>setShowAdd(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h3>Новая позиция</h3>
+            <div className="form-group"><label>Название *</label><input className="input" value={newItem.name} onChange={e=>setNewItem({...newItem,name:e.target.value})} /></div>
+            <div className="form-group"><label>Категория</label>
+              <select className="select" style={{width:'100%'}} value={newItem.category} onChange={e=>setNewItem({...newItem,category:e.target.value})}>
+                <option value="medicine">Лекарство</option>
+                <option value="equipment">Оборудование</option>
+                <option value="consumable">Расходный материал</option>
+              </select>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+              <div className="form-group"><label>Ед. изм.</label><input className="input" value={newItem.unit} onChange={e=>setNewItem({...newItem,unit:e.target.value})} /></div>
+              <div className="form-group"><label>Цена (₽)</label><input className="input" type="number" value={newItem.price||''} onChange={e=>setNewItem({...newItem,price:Number(e.target.value)})} /></div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn btn-outline" onClick={()=>setShowAdd(false)}>Отмена</button>
+              <button className="btn btn-primary" onClick={()=>{if(newItem.name){
+                const item = {id:'nom'+Date.now(),...newItem,lastPriceChange:new Date().toISOString().split('T')[0]};
+                setNomenclature([...nomenclature, item]);
+                if (sheetsAPI && isConnected) sheetsAPI.write('Номенклатура', item);
+                setShowAdd(false);setNewItem({name:'',category:'medicine',unit:'ампулы',price:0});
+              }}}>Добавить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <table className="data">
+          <thead><tr><th>Название</th><th>Категория</th><th>Ед. изм.</th><th className="text-right">Цена (₽)</th><th>Изменено</th><th></th></tr></thead>
+          <tbody>
+            {filtered.map(item => (
+              <tr key={item.id}>
+                <td className="font-medium">{item.name}</td>
+                <td><span className={`badge ${catColors[item.category]}`}>{catLabels[item.category]}</span></td>
+                <td style={{color:'#6b7280'}}>{item.unit}</td>
+                <td className="text-right">
+                  {editId === item.id ? (
+                    <div className="inline-edit">
+                      <input className="inline-input" type="number" value={newPrice} onChange={e=>setNewPrice(e.target.value)} autoFocus onKeyDown={e=>{if(e.key==='Enter'){const p=Number(newPrice);if(p>0){
+                        setNomenclature(nomenclature.map(n=>n.id===item.id?{...n,price:p,lastPriceChange:new Date().toISOString().split('T')[0]}:n));
+                        addLog('Изменение цены','Номенклатура '+item.id,item.price+' ₽',p+' ₽');
+                        if (sheetsAPI && isConnected) sheetsAPI.update('Номенклатура', item.id, {price:p,lastPriceChange:new Date().toISOString().split('T')[0]});
+                        setEditId(null);setNewPrice('');
+                      }}}} />
+                      <button className="btn-icon" style={{color:'#16a34a'}} onClick={()=>{const p=Number(newPrice);if(p>0){
+                        setNomenclature(nomenclature.map(n=>n.id===item.id?{...n,price:p,lastPriceChange:new Date().toISOString().split('T')[0]}:n));
+                        addLog('Изменение цены','Номенклатура '+item.id,item.price+' ₽',p+' ₽');
+                        if (sheetsAPI && isConnected) sheetsAPI.update('Номенклатура', item.id, {price:p,lastPriceChange:new Date().toISOString().split('T')[0]});
+                        setEditId(null);setNewPrice('');
+                      }}}><SvgIcon path={navIcons.save} size={14}/></button>
+                      <button className="btn-icon" onClick={()=>setEditId(null)}><SvgIcon path={navIcons.x} size={14}/></button>
+                    </div>
+                  ) : <span className="font-bold">{fmt(item.price)} ₽</span>}
+                </td>
+                <td style={{fontSize:12,color:'#9ca3af'}}>{item.lastPriceChange}</td>
+                <td><button className="btn-icon" onClick={()=>{setEditId(item.id);setNewPrice(String(item.price))}}><SvgIcon path={navIcons.edit} size={14}/></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ====== ПРИХОД ======
+function IncomePage({ employees, setEmployees, addLog, sheetsAPI, isConnected }) {
+  const [editId, setEditId] = useState(null);
+  const [editVal, setEditVal] = useState('');
+  const active = employees.filter(e => e.status !== 'blocked');
+  const total = active.reduce((s, e) => s + e.income, 0);
+
+  return (
+    <div>
+      <div className="gradient-green" style={{marginBottom:16}}>
+        <div className="label">Общий приход за март 2024</div>
+        <div className="value">{fmt(total)} ₽</div>
+        <div className="sub">Распределено на {active.length} сотрудников</div>
+      </div>
+      <div className="info-box"><p>💡 Нажмите «Изменить» для установки суммы прихода. Изменения записываются в журнал и Google Sheets.</p></div>
+
+      <div className="card">
+        <table className="data">
+          <thead><tr><th>Сотрудник</th><th>Статус</th><th>Смен</th><th className="text-right">Приход (₽)</th><th className="text-center">Действие</th></tr></thead>
+          <tbody>
+            {active.map(emp => (
+              <tr key={emp.id}>
+                <td><div className="emp-cell"><div className="avatar">{getInitials(emp.fullName)}</div><div><div className="emp-name">{emp.fullName}</div><div className="emp-num">№{emp.personalNumber}</div></div></div></td>
+                <td><span className={`badge ${emp.status==='active'?'badge-green':'badge-yellow'}`}>{emp.status==='active'?'Активен':'Отпуск'}</span></td>
+                <td>{emp.shifts}</td>
+                <td className="text-right">
+                  {editId === emp.id ? (
+                    <div className="inline-edit">
+                      <input className="inline-input" style={{width:110}} type="number" value={editVal} onChange={e=>setEditVal(e.target.value)} autoFocus onKeyDown={e=>{if(e.key==='Enter'){const v=Number(editVal);if(v>=0){
+                        setEmployees(employees.map(x=>x.id===emp.id?{...x,income:v}:x));
+                        addLog('Начисление прихода','Сотрудник '+emp.id,'0 ₽',fmt(v)+' ₽');
+                        if (sheetsAPI && isConnected) sheetsAPI.update('Сотрудники', emp.id, {income:v});
+                        setEditId(null);setEditVal('');
+                      }}}} />
+                      <span style={{fontSize:12,color:'#9ca3af'}}>₽</span>
+                    </div>
+                  ) : <span className="font-bold text-green">{fmt(emp.income)} ₽</span>}
+                </td>
+                <td className="text-center">
+                  {editId === emp.id ? (
+                    <div style={{display:'flex',gap:4,justifyContent:'center'}}>
+                      <button className="btn-icon" style={{color:'#16a34a'}} onClick={()=>{const v=Number(editVal);if(v>=0){
+                        setEmployees(employees.map(x=>x.id===emp.id?{...x,income:v}:x));
+                        addLog('Начисление прихода','Сотрудник '+emp.id,'0 ₽',fmt(v)+' ₽');
+                        if (sheetsAPI && isConnected) sheetsAPI.update('Сотрудники', emp.id, {income:v});
+                        setEditId(null);setEditVal('');
+                      }}}><SvgIcon path={navIcons.save} size={14}/></button>
+                      <button className="btn-icon" onClick={()=>setEditId(null)}>✕</button>
+                    </div>
+                  ) : <button style={{fontSize:12,color:'#2563eb',background:'none',border:'none',cursor:'pointer',fontWeight:500}} onClick={()=>{setEditId(emp.id);setEditVal(String(emp.income))}}>Изменить</button>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ====== ОСТАТКИ ======
+function RemnantsPage({ employees, nomenclature, remnants }) {
+  const [view, setView] = useState('emp');
+  const totalRub = remnants.reduce((s, r) => s + r.sumRub, 0);
+  const totalQty = remnants.reduce((s, r) => s + r.quantity, 0);
+
+  return (
+    <div>
+      <div className="kpi-grid" style={{gridTemplateColumns:'repeat(3,1fr)',marginBottom:24}}>
+        <div className="kpi-card"><div className="kpi-label" style={{color:'#2563eb'}}>Общий остаток (₽)</div><div className="kpi-value" style={{color:'#1e3a5f'}}>{fmt(totalRub)} ₽</div></div>
+        <div className="kpi-card"><div className="kpi-label" style={{color:'#7c3aed'}}>Общий остаток (шт)</div><div className="kpi-value" style={{color:'#3b0764'}}>{fmt(totalQty)}</div></div>
+        <div className="kpi-card"><div className="kpi-label" style={{color:'#15803d'}}>Позиций номенклатуры</div><div className="kpi-value" style={{color:'#14532d'}}>{new Set(remnants.map(r=>r.nomenclatureId)).size}</div></div>
+      </div>
+
+      <div className="tab-group">
+        <button className={`tab-btn ${view==='emp'?'active':''}`} onClick={()=>setView('emp')}>По сотрудникам</button>
+        <button className={`tab-btn ${view==='nom'?'active':''}`} onClick={()=>setView('nom')}>По номенклатуре</button>
+      </div>
+
+      {view === 'emp' && employees.filter(e=>e.status!=='blocked').map(emp => {
+        const empRem = remnants.filter(r => r.employeeId === emp.id);
+        if (empRem.length === 0) return null;
+        const empTotal = empRem.reduce((s, r) => s + r.sumRub, 0);
+        return (
+          <div key={emp.id} className="emp-card">
+            <div className="emp-card-header">
+              <div className="emp-cell"><div className="avatar">{getInitials(emp.fullName)}</div><div><div className="emp-name" style={{fontSize:13}}>{emp.fullName}</div><div className="emp-num">№{emp.personalNumber}</div></div></div>
+              <div style={{textAlign:'right'}}><div className="emp-card-total">{fmt(empTotal)} ₽</div><div className="emp-card-sub">общий остаток</div></div>
+            </div>
+            <table className="data" style={{fontSize:12}}>
+              <thead><tr style={{background:'#fafafa'}}><th style={{padding:'8px 16px',fontSize:11,color:'#6b7280',fontWeight:500}}>Наименование</th><th style={{padding:'8px 16px',fontSize:11,color:'#6b7280',fontWeight:500,textAlign:'right'}}>Ед.</th><th style={{padding:'8px 16px',fontSize:11,color:'#6b7280',fontWeight:500,textAlign:'right'}}>Кол-во</th><th style={{padding:'8px 16px',fontSize:11,color:'#6b7280',fontWeight:500,textAlign:'right'}}>Цена</th><th style={{padding:'8px 16px',fontSize:11,color:'#6b7280',fontWeight:500,textAlign:'right'}}>Сумма</th></tr></thead>
+              <tbody>
+                {empRem.map(r => {
+                  const nom = nomenclature.find(n => n.id === r.nomenclatureId);
+                  return <tr key={r.nomenclatureId}><td style={{padding:'8px 16px',fontWeight:500}}>{nom?.name}</td><td style={{padding:'8px 16px',textAlign:'right',color:'#6b7280'}}>{nom?.unit}</td><td style={{padding:'8px 16px',textAlign:'right',fontWeight:500}}>{r.quantity}</td><td style={{padding:'8px 16px',textAlign:'right',color:'#6b7280'}}>{nom?.price} ₽</td><td style={{padding:'8px 16px',textAlign:'right',fontWeight:500}}>{fmt(r.sumRub)} ₽</td></tr>;
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      {view === 'nom' && (
+        <div className="card">
+          <table className="data">
+            <thead><tr><th>Номенклатура</th><th>Ед. изм.</th><th className="text-right">Остаток (шт)</th><th className="text-right">Цена</th><th className="text-right">Сумма (₽)</th></tr></thead>
+            <tbody>
+              {nomenclature.map(nom => {
+                const items = remnants.filter(r => r.nomenclatureId === nom.id);
+                const totalQ = items.reduce((s, i) => s + i.quantity, 0);
+                const totalS = items.reduce((s, i) => s + i.sumRub, 0);
+                if (totalQ === 0) return null;
+                return <tr key={nom.id}><td className="font-medium">{nom.name}</td><td style={{color:'#6b7280'}}>{nom.unit}</td><td className="text-right font-medium">{totalQ}</td><td className="text-right" style={{color:'#6b7280'}}>{nom.price} ₽</td><td className="text-right font-bold text-blue">{fmt(totalS)} ₽</td></tr>;
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ====== РАСХОД ======
+function ExpensesPage({ expenses, employees, nomenclature }) {
+  const [search, setSearch] = useState('');
+  const filtered = expenses.filter(e => {
+    if (!search) return true;
+    const emp = employees.find(em => em.id === e.employeeId);
+    const nom = nomenclature.find(n => n.id === e.nomenclatureId);
+    return e.patientName.toLowerCase().includes(search.toLowerCase()) || emp?.fullName.toLowerCase().includes(search.toLowerCase()) || nom?.name.toLowerCase().includes(search.toLowerCase());
+  });
+
+  return (
+    <div>
+      <div className="kpi-grid" style={{gridTemplateColumns:'repeat(3,1fr)',marginBottom:24}}>
+        <div className="kpi-card"><div className="kpi-label">Записей расхода</div><div className="kpi-value">{filtered.length}</div></div>
+        <div className="kpi-card"><div className="kpi-label">Общая сумма</div><div className="kpi-value text-red">{fmt(filtered.reduce((s,e)=>s+e.totalSum,0))} ₽</div></div>
+        <div className="kpi-card"><div className="kpi-label">Пациентов</div><div className="kpi-value text-blue">{new Set(filtered.map(e=>e.patientName)).size}</div></div>
+      </div>
+
+      <input className="input" style={{marginBottom:16}} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск по пациенту, сотруднику, препарату..." />
+
+      <div className="card">
+        <div style={{overflowX:'auto'}}>
+          <table className="data">
+            <thead><tr><th>Дата</th><th>Сотрудник</th><th>Пациент</th><th>Дата рожд.</th><th>Препарат</th><th className="text-center">Кол-во</th><th className="text-right">Цена</th><th className="text-right">Сумма</th></tr></thead>
+            <tbody>
+              {[...filtered].sort((a,b)=>b.date.localeCompare(a.date)).map(exp => {
+                const emp = employees.find(e=>e.id===exp.employeeId);
+                const nom = nomenclature.find(n=>n.id===exp.nomenclatureId);
+                return <tr key={exp.id}><td style={{fontSize:12,color:'#6b7280'}}>{exp.date}</td><td style={{fontSize:12,fontWeight:500}}>{emp?.fullName||'—'}</td><td style={{fontSize:12}}>{exp.patientName}</td><td style={{fontSize:12,color:'#6b7280'}}>{exp.patientDob}</td><td style={{fontSize:12}}><span style={{fontWeight:500}}>{nom?.name}</span> <span style={{color:'#9ca3af',fontSize:10}}>({nom?.unit})</span></td><td className="text-center font-medium">{exp.quantity}</td><td className="text-right" style={{fontSize:12,color:'#6b7280'}}>{exp.priceAtMoment}</td><td className="text-right font-bold text-red">{exp.totalSum} ₽</td></tr>;
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ====== ВОЗВРАТЫ ======
+function ReturnsPage({ returns, setReturns, employees, nomenclature, addLog, sheetsAPI, isConnected }) {
+  const statusLabels = { pending:'Ожидает', approved:'Подтверждён', adjusted:'Скорректирован' };
+  const statusColors = { pending:'badge-yellow', approved:'badge-green', adjusted:'badge-blue' };
+
+  return (
+    <div>
+      <div className="kpi-grid" style={{gridTemplateColumns:'repeat(3,1fr)',marginBottom:24}}>
+        <div className="kpi-card"><div className="kpi-label">Всего возвратов</div><div className="kpi-value">{returns.length}</div></div>
+        <div className="kpi-card" style={{background:'#fefce8',borderColor:'#fef08a'}}><div className="kpi-label" style={{color:'#a16207'}}>Ожидают</div><div className="kpi-value" style={{color:'#854d0e'}}>{returns.filter(r=>r.status==='pending').length}</div></div>
+        <div className="kpi-card" style={{background:'#f0fdf4',borderColor:'#bbf7d0'}}><div className="kpi-label" style={{color:'#15803d'}}>Подтверждено</div><div className="kpi-value" style={{color:'#14532d'}}>{returns.filter(r=>r.status==='approved').length}</div></div>
+      </div>
+
+      <div className="card">
+        <table className="data">
+          <thead><tr><th>Дата</th><th>Сотрудник</th><th>Номенклатура</th><th className="text-center">Кол-во</th><th>Статус</th><th>Подтвердил</th><th>Действия</th></tr></thead>
+          <tbody>
+            {returns.map(ret => {
+              const emp = employees.find(e=>e.id===ret.employeeId);
+              const nom = nomenclature.find(n=>n.id===ret.nomenclatureId);
+              return (
+                <tr key={ret.id} style={ret.status==='pending'?{background:'#fffbeb'}:{}}>
+                  <td style={{fontSize:12,color:'#6b7280'}}>{ret.date}</td>
+                  <td style={{fontSize:12,fontWeight:500}}>{emp?.fullName||'—'}</td>
+                  <td style={{fontSize:12}}><span style={{fontWeight:500}}>{nom?.name}</span> <span style={{color:'#9ca3af',fontSize:10}}>({nom?.unit})</span></td>
+                  <td className="text-center font-medium">{ret.quantity}{ret.adjustedQuantity && <span style={{fontSize:10,color:'#2563eb',marginLeft:4}}>(→ {ret.adjustedQuantity})</span>}</td>
+                  <td><span className={`badge ${statusColors[ret.status]}`}>{statusLabels[ret.status]}</span></td>
+                  <td style={{fontSize:12,color:'#6b7280'}}>{ret.confirmedBy||'—'}</td>
+                  <td>
+                    {ret.status==='pending' && (
+                      <button className="btn btn-sm" style={{background:'#f0fdf4',color:'#15803d',border:'1px solid #bbf7d0'}} onClick={()=>{
+                        setReturns(returns.map(r=>r.id===ret.id?{...r,status:'approved',confirmedBy:'Руководитель'}:r));
+                        addLog('Подтверждение возврата','Возврат '+ret.id,'pending','approved');
+                        if (sheetsAPI && isConnected) sheetsAPI.update('Возвраты', ret.id, {status:'approved',confirmedBy:'Руководитель'});
+                      }}>
+                        <SvgIcon path={navIcons.check} size={12} /> Подтвердить
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ====== ЧАТ ======
+function ChatPage({ messages, setMessages, employees, sheetsAPI, isConnected }) {
+  const [selected, setSelected] = useState(null);
+  const [newMsg, setNewMsg] = useState('');
+
+  const conversations = employees.filter(e=>e.status!=='blocked').map(emp => {
+    const msgs = messages.filter(m => (m.from===emp.id && m.to==='manager') || (m.from==='manager' && m.to===emp.id)).sort((a,b)=>a.date.localeCompare(b.date));
+    const unread = msgs.filter(m => !m.read && m.to==='manager').length;
+    return { employee:emp, messages:msgs, unread, lastMsg:msgs[msgs.length-1] };
+  }).filter(c => c.messages.length > 0);
+
+  const current = conversations.find(c => c.employee.id === selected);
+
+  const handleSend = () => {
+    if (!newMsg.trim() || !selected) return;
+    const msg = { id:'msg'+Date.now(), from:'manager', fromRole:'manager', to:selected, toRole:'employee', text:newMsg.trim(), date:new Date().toLocaleString('ru-RU'), read:false };
+    setMessages([...messages, msg]);
+    if (sheetsAPI && isConnected) sheetsAPI.write('Сообщения', msg);
+    setNewMsg('');
+  };
+
+  const handleSelect = (id) => {
+    setSelected(id);
+    setMessages(messages.map(m => m.from===id && m.to==='manager' ? {...m,read:true} : m));
+  };
+
+  return (
+    <div className="chat-container">
+      <div className="chat-sidebar">
+        <div className="chat-sidebar-header">Диалоги</div>
+        <div className="chat-list">
+          {conversations.map(conv => (
+            <button key={conv.employee.id} className={`chat-item ${selected===conv.employee.id?'active':''}`} onClick={()=>handleSelect(conv.employee.id)}>
+              <div className="avatar" style={{width:36,height:36,fontSize:10}}>{getInitials(conv.employee.fullName)}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontSize:12,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{conv.employee.fullName}</span>
+                  {conv.unread > 0 && <span className="nav-badge" style={{width:16,height:16,fontSize:9}}>{conv.unread}</span>}
+                </div>
+                {conv.lastMsg && <div style={{fontSize:10,color:'#9ca3af',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginTop:2}}>{conv.lastMsg.from==='manager'?'Вы: ':''}{conv.lastMsg.text}</div>}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="chat-main">
+        {current ? (
+          <>
+            <div className="chat-header">
+              <div className="avatar" style={{width:36,height:36,fontSize:10}}>{getInitials(current.employee.fullName)}</div>
+              <div><div style={{fontWeight:600,fontSize:13}}>{current.employee.fullName}</div><div style={{fontSize:10,color:'#9ca3af'}}>№{current.employee.personalNumber}</div></div>
+            </div>
+            <div className="chat-messages">
+              {current.messages.map(msg => (
+                <div key={msg.id} style={{display:'flex',justifyContent:msg.from==='manager'?'flex-end':'flex-start'}}>
+                  <div className={`msg-bubble ${msg.from==='manager'?'msg-out':'msg-in'}`}>
+                    <div>{msg.text}</div>
+                    <div className="msg-time">{msg.date}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="chat-input">
+              <input className="input" value={newMsg} onChange={e=>setNewMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSend()} placeholder="Введите сообщение..." />
+              <button className="btn btn-primary" onClick={handleSend}><SvgIcon path={navIcons.send} size={16}/></button>
+            </div>
+          </>
+        ) : (
+          <div className="empty-state">Выберите диалог</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ====== ОТЧЁТЫ ======
+function ReportsPage({ employees, expenses, nomenclature, remnants }) {
+  const [reportType, setReportType] = useState('monthly');
+  const active = employees.filter(e=>e.status!=='blocked');
+  const data = active.map(emp => {
+    const empExp = expenses.filter(e=>e.employeeId===emp.id);
+    const totalExp = empExp.reduce((s,e)=>s+e.totalSum,0);
+    const patients = new Set(empExp.map(e=>e.patientName)).size;
+    const rem = remnants.filter(r=>r.employeeId===emp.id).reduce((s,r)=>s+r.sumRub,0);
+    return { ...emp, calls:empExp.length, patients, expenseRub:totalExp, remnantRub:rem, diff:emp.income-totalExp };
+  });
+  const totalIncome = data.reduce((s,r)=>s+r.income,0);
+  const totalExpense = data.reduce((s,r)=>s+r.expenseRub,0);
+  const totalRemnant = data.reduce((s,r)=>s+r.remnantRub,0);
+
+  return (
+    <div>
+      <div className="toolbar">
+        <div className="tab-group" style={{marginBottom:0}}>
+          {[{id:'monthly',label:'Месячный'},{id:'employee',label:'По сотрудникам'},{id:'nomenclature',label:'По номенклатуре'}].map(t=>(
+            <button key={t.id} className={`tab-btn ${reportType===t.id?'active':''}`} onClick={()=>setReportType(t.id)}>{t.label}</button>
+          ))}
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-outline">📄 PDF</button>
+          <button className="btn btn-success">📊 Excel</button>
+        </div>
+      </div>
+
+      <div className="report-summary">
+        <h3>Отчёт за Март 2024</h3>
+        <div className="report-grid">
+          {[{label:'Общий приход',value:fmt(totalIncome)+' ₽',bg:'#f0fdf4',color:'#15803d'},{label:'Общий расход',value:fmt(totalExpense)+' ₽',bg:'#fef2f2',color:'#b91c1c'},{label:'Остаток подразд.',value:fmt(totalRemnant)+' ₽',bg:'#eff6ff',color:'#1d4ed8'},{label:'Всего пациентов',value:new Set(expenses.map(e=>e.patientName)).size.toString(),bg:'#faf5ff',color:'#7c3aed'}].map((c,i)=>(
+            <div key={i} className="report-card" style={{background:c.bg}}><div className="label" style={{color:c.color}}>{c.label}</div><div className="value" style={{color:c.color}}>{c.value}</div></div>
+          ))}
+        </div>
+      </div>
+
+      {reportType === 'monthly' && (
+        <div className="card">
+          <table className="data">
+            <thead><tr><th>№</th><th>ФИО</th><th className="text-center">Вызовов</th><th className="text-center">Пациентов</th><th className="text-right">Приход (₽)</th><th className="text-right">Расход (₽)</th><th className="text-right">Остаток (₽)</th></tr></thead>
+            <tbody>
+              {data.map((row,i) => (
+                <tr key={row.id}><td style={{color:'#9ca3af'}}>{i+1}</td><td className="font-medium">{row.fullName}</td><td className="text-center">{row.calls}</td><td className="text-center">{row.patients}</td><td className="text-right font-medium text-green">{fmt(row.income)}</td><td className="text-right font-medium text-red">{fmt(row.expenseRub)}</td><td className={`text-right font-bold ${row.diff>=0?'text-green':'text-red'}`}>{row.diff>=0?'+':''}{fmt(row.diff)}</td></tr>
+              ))}
+            </tbody>
+            <tr style={{background:'#f9fafb',fontWeight:700}}>
+              <td style={{padding:'12px 16px'}} colSpan={2}>ИТОГО</td>
+              <td className="text-center">{data.reduce((s,r)=>s+r.calls,0)}</td>
+              <td className="text-center">{new Set(expenses.map(e=>e.patientName)).size}</td>
+              <td className="text-right text-green">{fmt(totalIncome)} ₽</td>
+              <td className="text-right text-red">{fmt(totalExpense)} ₽</td>
+              <td className="text-right text-blue">{fmt(totalRemnant)} ₽</td>
+            </tr>
+          </table>
+        </div>
+      )}
+
+      {reportType === 'nomenclature' && (
+        <div className="card">
+          <table className="data">
+            <thead><tr><th>Номенклатура</th><th>Ед. изм.</th><th className="text-right">Расход (шт)</th><th className="text-right">Сумма (₽)</th><th className="text-center">Пациентов</th></tr></thead>
+            <tbody>
+              {nomenclature.map(nom => {
+                const nomExp = expenses.filter(e=>e.nomenclatureId===nom.id);
+                const totalQ = nomExp.reduce((s,e)=>s+e.quantity,0);
+                const totalS = nomExp.reduce((s,e)=>s+e.totalSum,0);
+                const pts = new Set(nomExp.map(e=>e.patientName)).size;
+                if (totalQ===0) return null;
+                return <tr key={nom.id}><td className="font-medium">{nom.name}</td><td style={{color:'#6b7280'}}>{nom.unit}</td><td className="text-right font-medium">{totalQ}</td><td className="text-right font-medium text-red">{fmt(totalS)} ₽</td><td className="text-center">{pts}</td></tr>;
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ====== ЖУРНАЛ ======
+function LogPage({ log }) {
+  const [search, setSearch] = useState('');
+  const filtered = log.filter(l => !search || l.userName.toLowerCase().includes(search.toLowerCase()) || l.action.toLowerCase().includes(search.toLowerCase()));
+
+  const actionColors = {
+    'Изменение цены':'badge-yellow','Добавление сотрудника':'badge-green','Блокировка':'badge-red','Разблокировка':'badge-green',
+    'Начисление прихода':'badge-blue','Подтверждение возврата':'badge-emerald','Отправка сообщения':'badge-indigo'
+  };
+
+  return (
+    <div>
+      <div className="card" style={{padding:16,marginBottom:16}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+          <SvgIcon path={navIcons.scroll} size={20} />
+          <div><h3 style={{fontWeight:600,fontSize:15}}>Журнал изменений</h3><p style={{fontSize:12,color:'#9ca3af'}}>Версионность данных: кто, когда, что изменил</p></div>
+        </div>
+        <input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск по журналу..." />
+      </div>
+
+      <div className="card">
+        <table className="data">
+          <thead><tr><th>Дата/Время</th><th>Кто</th><th>Роль</th><th>Действие</th><th>Объект</th><th>Было → Стало</th><th>Комментарий</th></tr></thead>
+          <tbody>
+            {filtered.map(entry => (
+              <tr key={entry.id}>
+                <td style={{fontSize:12,color:'#6b7280',whiteSpace:'nowrap'}}>{entry.timestamp}</td>
+                <td style={{fontSize:12,fontWeight:500}}>{entry.userName}</td>
+                <td><span className={`badge ${entry.role==='Руководитель'?'badge-blue':'badge-orange'}`}>{entry.role}</span></td>
+                <td><span className={`badge ${actionColors[entry.action]||'badge-gray'}`}>{entry.action}</span></td>
+                <td style={{fontSize:12,color:'#4b5563'}}>{entry.objectType}</td>
+                <td><div className="log-change"><span className="log-old">{entry.oldValue}</span><span className="log-arrow">→</span><span className="log-new">{entry.newValue}</span></div></td>
+                <td style={{fontSize:12,color:'#9ca3af'}}>{entry.comment||'—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ====== РЕНДЕРИНГ ======
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
